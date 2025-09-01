@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import './UrlShortener.css';
+import logger from '../middleware/logger';
 
 const UrlShortener = () => {
   const [urls, setUrls] = useState([]);
   const [error, setError] = useState('');
+  
+  // Wrap state updates with logger
+  const loggedSetUrls = logger('SET_URLS')(setUrls);
+  const loggedSetError = logger('SET_ERROR')(setError);
 
   
   const isValidUrl = (url) => {
@@ -27,32 +32,32 @@ const UrlShortener = () => {
 
   const addUrl = () => {
     if (urls.length >= 5) {
-      setError('Maximum 5 URLs allowed');
+      loggedSetError('Maximum 5 URLs allowed');
       return;
     }
-    setUrls([...urls, { longUrl: '', validityPeriod: '', shortcode: '', shortened: '' }]);
-    setError('');
+    loggedSetUrls([...urls, { longUrl: '', validityPeriod: '', shortcode: '', shortened: '' }]);
+    loggedSetError('');
   };
 
   const handleInputChange = (index, field, value) => {
     const newUrls = [...urls];
     newUrls[index][field] = value;
-    setUrls(newUrls);
+    loggedSetUrls(newUrls);
   };
 
   const shortenUrl = (index) => {
     const url = urls[index];
     
     if (!isValidUrl(url.longUrl)) {
-      setError('Please enter a valid URL');
+      loggedSetError('Please enter a valid URL');
       return;
     }
     if (!isValidPeriod(url.validityPeriod)) {
-      setError('Validity period must be a positive integer');
+      loggedSetError('Validity period must be a positive integer');
       return;
     }
     if (!isValidShortcode(url.shortcode)) {
-      setError('Shortcode can only contain letters, numbers, underscore and hyphen');
+      loggedSetError('Shortcode can only contain letters, numbers, underscore and hyphen');
       return;
     }
 
@@ -77,15 +82,15 @@ const UrlShortener = () => {
       shortened: result.shortened,
       expiryDate: result.expiryDate
     };
-    setUrls(newUrls);
-    setError('');
+    loggedSetUrls(newUrls);
+    loggedSetError('');
   };
 
   const removeUrl = (index) => {
     const newUrls = urls.filter((_, i) => i !== index);
-    setUrls(newUrls);
+    loggedSetUrls(newUrls);
   };
-develop logging middleware for this project
+
   return (
     <div className="url-shortener">
       <h2>URL Shortener</h2>
